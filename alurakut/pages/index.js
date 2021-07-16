@@ -2,7 +2,7 @@ import MainGrid from '../src/components/MainGrid';
 import Box from '../src/components/Box';
 import { AlurakutMenu, OrkutNostalgicIconSet, AlurakutProfileSidebarMenuDefault } from '../src/lib/AlurakutCommons';
 import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 
 function ProfileSideBar(props) {
@@ -57,6 +57,25 @@ export default function Home() {
     image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg'
   }]);
 
+  const [seguidores, setSeguidores] = useState([]);
+
+  useEffect(() => {
+    fetch('https://api.github.com/users/rafaballerini/followers')
+      .then(resposta => {
+        if (resposta.status >= 200 && resposta.status < 300) {
+          return resposta.json();
+        } else {
+          return resposta.json().then(Promise.reject.bind(Promise));
+        }
+      })
+      .then(dados => {
+        setSeguidores(dados);
+      })
+      .catch(erro => {
+        console.log('Erro ao buscar os dados na api do github: ', erro.message);
+      })
+  }, []);
+
   const pessoasFavoritas = [
     'juunegreiros',
     'omariosouto',
@@ -77,6 +96,16 @@ export default function Home() {
       });
     })
     return objetosUsuarios;
+  }
+
+  function geraObjetosSeguidoresGitHub(dados) {
+    return dados.map(usuario => {
+      return {
+        id: usuario.id,
+        title: usuario.login,
+        image: usuario.avatar_url
+      };
+    })
   }
 
   return (
@@ -132,6 +161,11 @@ export default function Home() {
           </Box>
         </div>
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
+          <RelationsBox
+            name="Seguidores"
+            list={geraObjetosSeguidoresGitHub(seguidores)}
+          />
+
           <RelationsBox
             name="Comunidades"
             list={comunidades}
